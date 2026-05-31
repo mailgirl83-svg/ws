@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학교 야구 VAR 판독기 - Gemini AI 심판 위원</title>
+  <meta name="description" content="종이공을 이용한 학교 야구 VAR 및 ABS 자동 판정 시스템">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon"></div>
+      <div>
+        <h1 class="logo-title" id="main-header-title">VAR PANOPTICON</h1>
+        <div class="logo-sub">School Baseball VAR System</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" id="btn-settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        설정 및 API 설정
+      </button>
+    </div>
+  </header>
+
+  <!-- App Main Content Grid -->
+  <main class="app-container">
+    
+    <!-- Scoreboard Dashboard Panel -->
+    <section class="panel scoreboard-panel" aria-label="스코어보드">
+      <div class="scoreboard">
+        
+        <!-- Team A (Away) -->
+        <div class="team-display team-a">
+          <div class="team-name-wrapper">
+            <span class="team-color-indicator" title="팀 컬러"></span>
+            <div class="team-name" id="team-a-name">홈런 키즈</div>
+          </div>
+          <div class="team-score" id="team-a-score">0</div>
+        </div>
+        
+        <!-- Score Separator -->
+        <div class="score-divider">VS</div>
+        
+        <!-- Team B (Home) -->
+        <div class="team-display team-b">
+          <div class="team-name-wrapper">
+            <div class="team-name" id="team-b-name">단소 타이거즈</div>
+            <span class="team-color-indicator" title="팀 컬러"></span>
+          </div>
+          <div class="team-score" id="team-b-score">0</div>
+        </div>
+        
+        <!-- Center Game Info (Inning and S/B/O Counts) -->
+        <div class="game-state-display">
+          <div class="inning-display">
+            <span class="inning-label">이닝</span>
+            <div class="inning-val" id="inning-val" style="cursor: pointer;" title="클릭하여 이닝 전환">1회 초</div>
+          </div>
+          
+          <div class="count-display">
+            <!-- Strike Count -->
+            <div class="count-row strike" id="strike-row">
+              <span class="count-letter s">S</span>
+              <div class="count-dots">
+                <span class="count-dot"></span>
+                <span class="count-dot"></span>
+              </div>
+            </div>
+            
+            <!-- Ball Count -->
+            <div class="count-row ball" id="ball-row">
+              <span class="count-letter b">B</span>
+              <div class="count-dots">
+                <span class="count-dot"></span>
+                <span class="count-dot"></span>
+                <span class="count-dot"></span>
+              </div>
+            </div>
+            
+            <!-- Out Count -->
+            <div class="count-row out" id="out-row">
+              <span class="count-letter o">O</span>
+              <div class="count-dots">
+                <span class="count-dot"></span>
+                <span class="count-dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+
+    <!-- Left Column: Video Viewport and Controls -->
+    <section class="panel viewport-panel">
+      <div class="viewport-header">
+        <h2 class="viewport-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-main);">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          VAR 판독실 리얼타임 피드
+        </h2>
+        <div class="live-indicator">LIVE</div>
+        <!-- Webcam is default, Simulation is secondary -->
+        <div class="viewport-modes">
+          <button class="mode-tab active" id="tab-cam">웹캠 트래커</button>
+          <button class="mode-tab" id="tab-sim">모의 시뮬레이터</button>
+        </div>
+      </div>
+      
+      <!-- Video / Canvas Feed -->
+      <div class="video-container">
+        <video id="camera-video" width="640" height="360" muted playsinline></video>
+        <canvas id="overlay-canvas"></canvas>
+        
+        <!-- Floating Calibration Badge -->
+        <div class="calibration-info">
+          <h4>ABS 자동 캘리브레이션</h4>
+          <p>상단: 타자 키의 55.75%</p>
+          <p>하단: 타자 키의 27.04%</p>
+          <p>좌우: 홈플레이트 + 2cm 확장</p>
+        </div>
+        
+        <!-- Speed Overlay -->
+        <div class="speed-overlay" id="speed-overlay">
+          <span class="speed-label">구속 판독</span>
+          <div class="speed-value">0.0</div>
+          <span class="speed-label" style="font-size:0.5rem; letter-spacing:1px; margin-top:2px;">km/h</span>
+          <div class="speed-tag">빠른공</div>
+        </div>
+        
+        <!-- Decision Alert Banner Overlay -->
+        <div class="decision-banner" id="decision-banner">STRIKE</div>
+      </div>
+      
+      <!-- Calibration and Controls -->
+      <div class="controls-container">
+        
+        <!-- Height Slider -->
+        <div class="controls-row">
+          <div class="control-group">
+            <label class="control-label" for="height-slider">
+              <span>타자 신장 설정 (ABS 존 높이 제어)</span>
+              <span class="value-badge" id="height-value">150cm</span>
+            </label>
+            <input type="range" min="145" max="160" value="150" class="slider-custom" id="height-slider">
+          </div>
+        </div>
+        
+        <!-- Simulated Play Events (Simulator Mode) -->
+        <div class="controls-row" id="sim-controls" style="display: none;">
+          <div class="control-group">
+            <span class="control-label">자동 투구 시뮬레이션 (ABS)</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn-referee active" id="btn-sim-strike" title="ABS 스트라이크 존 안쪽 통과">스트라이크 투구</button>
+              <button class="btn-referee" id="btn-sim-ball" title="ABS 스트라이크 존 바깥쪽 통과">볼 투구</button>
+              <button class="btn-referee" id="btn-sim-swing-miss" title="스윙 후 헛스윙 삼진">헛스윙</button>
+              <button class="btn-referee" id="btn-sim-swing-foul" title="배트에 스친 파울">배트 닿음 (파울)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera Controls info (Camera Mode) -->
+        <div class="controls-row" id="camera-controls" style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <div class="control-group">
+            <span class="control-label" style="color: var(--color-main);">웹캠 실시간 색상 트래킹 조작법</span>
+            <p style="font-size: 0.85rem; color: var(--text-dark); line-height: 1.45;">
+              1. 카메라 앵글을 투구 궤적이 보이도록 설치합니다.<br>
+              2. 화면에서 <strong>종이공(흰색 등)의 위치를 클릭</strong>하여 트래킹 대상 색상을 설정하세요.<br>
+              3. 공을 던지면 자동으로 궤적을 쫓아 ABS 판정을 결정합니다.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Slow-motion Replay controls -->
+        <div class="controls-row" style="border-top: 1px solid var(--border-color); padding-top: 10px;">
+          <div class="control-group">
+            <span class="control-label">VAR 비디오 슬로모션 배속 컨트롤</span>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-secondary" id="btn-replay-slow" style="font-size:0.8rem; padding: 0.4rem 0.8rem;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/>
+                </svg>
+                0.15x 울트라 슬로모션
+              </button>
+              <button class="btn-secondary" id="btn-replay-norm" style="font-size:0.8rem; padding: 0.4rem 0.8rem;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>
+                </svg>
+                0.40x 표준 리플레이
+              </button>
+              <button class="btn-secondary" id="btn-replay-stop" style="font-size:0.8rem; padding: 0.4rem 0.8rem;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                </svg>
+                리플레이 정지 (LIVE)
+              </button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+
+    <!-- Right Column: AI Referee and Logs Panel -->
+    <section class="panel desk-panel">
+      
+      <!-- Gemini 2.5 Flash Lite Verdict Card -->
+      <div class="gemini-verdict-card">
+        <div class="gemini-header">
+          <div class="gemini-title">
+            <svg class="gemini-sparkle" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            AI 판독위원 분석 Verdict
+          </div>
+          <span class="gemini-model-badge">Gemini 2.5 Flash Lite</span>
+        </div>
+        <div class="gemini-comment placeholder" id="gemini-comment">
+          경기를 시작하거나 판독 버튼을 누르면 인공지능 심판의 판독 소견이 여기에 노출됩니다.
+        </div>
+      </div>
+      
+      <!-- Historical Logs Section -->
+      <div class="log-section-title">
+        <span>경기 판독 이력 피드 (자동 기록)</span>
+        <span class="log-section-count" id="log-count">0</span>
+      </div>
+      
+      <div class="pitch-log-list" id="pitch-log-list">
+        <!-- Rendered dynamically -->
+      </div>
+      
+      <button class="btn-secondary" id="btn-clear-logs" style="border-color: rgba(239, 35, 60, 0.3); color: var(--color-main); align-self: flex-end; font-size: 0.8rem;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        판독 로그 전체 삭제
+      </button>
+      
+    </section>
+  </main>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">VAR 판독기 설정</h3>
+        <button class="btn-close" id="btn-close-modal">&times;</button>
+      </div>
+      <form id="form-settings">
+        <!-- Team A Name & Color -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="input-team-a">팀 A 이름 (원정)</label>
+            <input type="text" class="input-custom" id="input-team-a" value="홈런 키즈">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-color-a">팀 A 색상</label>
+            <div class="color-picker-wrapper">
+              <input type="color" class="color-input" id="input-color-a" value="#2563eb">
+              <span style="font-size:0.75rem; color:var(--color-sub);">Pick Color</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team B Name & Color -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="input-team-b">팀 B 이름 (홈)</label>
+            <input type="text" class="input-custom" id="input-team-b" value="단소 타이거즈">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-color-b">팀 B 색상</label>
+            <div class="color-picker-wrapper">
+              <input type="color" class="color-input" id="input-color-b" value="#ef233c">
+              <span style="font-size:0.75rem; color:var(--color-sub);">Pick Color</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemini API Key -->
+        <div class="form-group" style="margin-top: 8px;">
+          <label class="form-label" for="input-api-key">Gemini API Key (선택 사항)</label>
+          <input type="password" class="input-custom" id="input-api-key" placeholder="AI 실시간 코멘트를 위한 Gemini API Key 입력">
+          <p style="font-size: 0.7rem; color: var(--color-sub); line-height: 1.3; margin-top: 4px;">
+            ※ API Key를 입력하지 않으면 고성능 로컬 모사 판독 엔진이 KBO/학교 야구 규칙에 의거한 판정을 시뮬레이션하여 의견을 제시합니다.
+          </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <button type="submit" class="btn-primary btn-submit">설정 사항 저장</button>
+        
+        <button type="button" class="btn-secondary" id="btn-reset-game" style="width: 100%; border-color: rgba(239, 35, 60, 0.3); color: var(--color-main); justify-content: center; margin-top: 6px;">
+          경기 스코어보드 초기화
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/tracker.js"></script>
+  <script src="js/gemini.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
